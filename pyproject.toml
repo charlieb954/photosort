@@ -1,0 +1,51 @@
+[project]
+name = "photosort"
+version = "0.1.0"
+description = "photosort is minimal command line python application to sort photos based on EXIF data whilst avoiding duplicates using MD5 hashing."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pillow>=11.1.0",
+    "pillow-heif>=0.21.0",
+    "typer>=0.15.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+    "pytest-cov>=6.0.0",
+]
+
+[tool.uv]
+package = true
+
+[tool.ruff]
+exclude = ["*.ipynb"]
+indent-width = 4
+line-length = 79
+
+[tool.ruff.format]
+indent-style = "space"
+line-ending = "auto"
+quote-style = "double"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint]
+select = [
+    "D1",  # docstring
+    "E",   # pycodestyle
+    "ERA", # commented out code
+    "I",   # isort
+    "W",   # pycodestyle
+    "ANN", # missing type annotation
+]
+
+[project.scripts]
+photosort = "photosort.cli:app"
+
+[tool.pytest.ini_options]
+pythonpath = [
+    ".", "src",
+]
