@@ -22,8 +22,8 @@ jobs:
         with:
           python-version-file: ".python-version"
 
-      - name: Sync dependencies with uv
-        run: uv sync --all-groups
+      - name: Install project dependencies
+        run: uv sync --locked --all-extras --dev
 
       - name: Run tests with coverage
-        run: pytest --cov
+        run: uv run pytest --cov
