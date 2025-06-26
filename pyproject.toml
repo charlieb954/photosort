@@ -1,6 +1,10 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "photosort"
-version = "0.1.0"
+dynamic = ["version"]
 description = "photosort is minimal command line python application to sort photos based on EXIF data whilst avoiding duplicates using MD5 hashing."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -12,10 +16,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = [
-    "pytest>=8.3.4",
-    "pytest-cov>=6.0.0",
-]
+dev = ["pytest>=8.3.4", "pytest-cov>=6.0.0", "ruff>=0.12.0"]
 
 [tool.uv]
 package = true
@@ -47,6 +48,6 @@ select = [
 photosort = "photosort.cli:app"
 
 [tool.pytest.ini_options]
-pythonpath = [
-    ".", "src",
-]
+pythonpath = [".", "src"]
+
+[tool.setuptools_scm]

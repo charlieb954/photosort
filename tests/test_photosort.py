@@ -172,7 +172,9 @@ def test_find_photos_nested(tmp_path: Path) -> None:
         ("red", "blue", False),
     ],
 )
-def test_generate_file_hash_param(tmp_path: Path, color1, color2, should_be_equal):
+def test_generate_file_hash_param(
+    tmp_path: Path, color1: str, color2: str, should_be_equal: bool
+) -> None:
     """Parametrized test for generate_file_hash with different images."""
     file1 = tmp_path / "a.jpg"
     file2 = tmp_path / "b.jpg"
