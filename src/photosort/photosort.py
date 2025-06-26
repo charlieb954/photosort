@@ -11,9 +11,8 @@ from pathlib import Path
 import typer
 from PIL import ExifTags, Image
 from pillow_heif import register_heif_opener
-from typing_extensions import Annotated
-
 from rich.logging import RichHandler
+from typing_extensions import Annotated
 
 register_heif_opener()  # Register HEIC support for Pillow
 
