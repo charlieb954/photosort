@@ -37,10 +37,10 @@ Imagine the below tree structure, some files that shouldn't be there
 Running a single `photosort` command (see usage) will return these messages.
 
 ```bash
-2025-02-12 20:42:27,887 - INFO - Found 4 photos.
-2025-02-12 20:42:27,890 - INFO - Duplicate file found: data/test-photos/Canon_40D copy.jpg (hash: 406958840ad1665ffcd1be9c29d515b9)
-2025-02-12 20:42:27,896 - WARNING - Found 1 duplicate photos. Duplicates will be ignored.
-2025-02-12 20:42:27,898 - INFO - Finished copying 3 photos.
+[17:38:30] INFO     Found 4 photos.
+           INFO     Duplicate file found: data/test-photos/other/Canon_40D copy.jpg and data/test-photos/Canon_40D.jpg (hash:406958840ad1665ffcd1be9c29d515b9)
+           WARNING  Found 1 duplicate photos. Duplicates will be ignored.
+           INFO     Finished copying 3 photos.
 ```
 
 `photosort` will reoganise these photos, ignoring duplicates and rename to the
@@ -66,15 +66,21 @@ below:
 To sort your photos, use the following command:
 
 ```bash
-photosort <source_directory> <destination_directory>
+photosort run <src> <dest>
 ```
 
-Replace `<source_directory>` with the path to your unsorted photos and
-`<destination_directory>` with the path where you want the sorted photos to be
+Replace `<src>` with the path to your unsorted photos and
+`<dest>` with the path where you want the sorted photos to be
 saved.
 
 To see how it works, try it out with the test images in this repository
 
 ```bash
-photosort ./data/test-photos ./data/fixed
+photosort run ./data/test-photos ./data/fixed
+```
+
+There is also an option to count the number of duplicates:
+
+```bash
+photosort count <src>
 ```

@@ -7,6 +7,7 @@ requires-python = ">=3.10"
 dependencies = [
     "pillow>=11.1.0",
     "pillow-heif>=0.21.0",
+    "rich>=13.9.4",
     "typer>=0.15.1",
 ]
 
