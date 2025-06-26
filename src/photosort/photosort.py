@@ -13,11 +13,10 @@ from PIL import ExifTags, Image
 from pillow_heif import register_heif_opener
 from typing_extensions import Annotated
 
-from rich.logging import RichHandler  # <-- Add this import
+from rich.logging import RichHandler
 
 register_heif_opener()  # Register HEIC support for Pillow
 
-# Replace standard logging config with RichHandler
 logging.basicConfig(
     level=logging.INFO,
     format="%(message)s",
