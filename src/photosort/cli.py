@@ -2,7 +2,7 @@
 
 import typer
 
-from .photosort import main, count_duplicates
+from .photosort import count_duplicates, main
 
 app = typer.Typer(
     help="photsort: Organise and sort photos easily from the command line.",
