@@ -13,9 +13,16 @@ from PIL import ExifTags, Image
 from pillow_heif import register_heif_opener
 from typing_extensions import Annotated
 
+from rich.logging import RichHandler  # <-- Add this import
+
 register_heif_opener()  # Register HEIC support for Pillow
+
+# Replace standard logging config with RichHandler
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(rich_tracebacks=True)],
 )
 
 SUPPORTED_FILE_TYPES = (".jpg", ".jpeg", ".heic", ".tiff", ".heif")
@@ -24,7 +31,7 @@ SUPPORTED_FILE_TYPES = (".jpg", ".jpeg", ".heic", ".tiff", ".heif")
 def copy_and_rename_file(
     src_path: str, dest_folder: str, filename: str, ext: str
 ) -> None:
-    """copies a file, renames it, and moves it to another folder.
+    """Create a copy, rename it and then move a file to the destination folder.
 
     Args:
         src_path (str): The full path of the source file.
@@ -88,7 +95,7 @@ def extract_exif_metadata(file_path: str) -> dict:
     return metadata
 
 
-def hash_extract_metadata(photo_paths: list) -> tuple[list, int]:
+def hash_extract_metadata(photo_paths: list) -> tuple[dict, int]:
     """hash the photos and extract their metadata.
 
     Args:
@@ -104,29 +111,36 @@ def hash_extract_metadata(photo_paths: list) -> tuple[list, int]:
     for file_path in photo_paths:
         photo_hash = generate_file_hash(file_path)
         if photo_hash in photos_metadata.keys():
+            original_path = photos_metadata[photo_hash]["file_path"]
             logging.info(
-                f"Duplicate file found: {file_path} (hash: {photo_hash})"
+                (
+                    f"Duplicate file found: {file_path} and {original_path}"
+                    f" (hash: {photo_hash})"
+                )
             )
             duplicate_count += 1
         else:
             metadata = extract_exif_metadata(file_path)
             photos_metadata[photo_hash]["metadata"] = metadata
+            photos_metadata[photo_hash]["file_path"] = (
+                file_path  # Store original path
+            )
 
     return photos_metadata, duplicate_count
 
 
-def find_photos(filepath: str) -> list:
-    """find photos in a folder. TODO: add support for subfolders.
+def find_photos(file_path: str) -> list:
+    """find photos in a folder and its subfolders.
 
     Args:
-        filepath (str): The path to the folder.
+        file_path (str): The path to the folder.
 
     Returns:
         list: A list of photo paths.
     """
     photo_paths = []
 
-    for entry in Path(filepath).iterdir():
+    for entry in Path(file_path).rglob("*"):
         if entry.is_file() and entry.suffix.lower() in SUPPORTED_FILE_TYPES:
             photo_paths.append(str(entry))
 
@@ -152,23 +166,23 @@ def generate_file_hash(file_path: str) -> str:
 
 
 def main(
-    input_folder: Annotated[
+    src: Annotated[
         str, typer.Argument(help="The folder containing the original photos.")
     ],
-    output_folder: Annotated[
+    dest: Annotated[
         str, typer.Argument(help="The folder to copy the newly named photos.")
     ],
 ) -> None:
     """sort photos based on their EXIF metadata.
 
     Args:
-        folder (Annotated[ str, typer.Argument )]: The folder containing the
+        src (Annotated[ str, typer.Argument ]): The folder containing the
             original photos.
-        output_folder (Annotated[ str, typer.Argument )]: The folder to copy
+        dest (Annotated[ str, typer.Argument ]): The folder to copy
             the newly named photos.
     """
     photos_copied = 0
-    photo_paths = find_photos(input_folder)
+    photo_paths = find_photos(src)
 
     if photo_paths == []:
         raise Exception("No valid photos found in the input folder.")
@@ -186,7 +200,7 @@ def main(
 
     for photo_hash in photos_metadata.keys():
         filename = photos_metadata[photo_hash]["metadata"].get("filename")
-        original_photo = Path(input_folder) / filename
+        original_photo = Path(src) / filename
         ext = original_photo.suffix.lower()
 
         datetime_string = photos_metadata[photo_hash]["metadata"].get(
@@ -214,7 +228,7 @@ def main(
 
         copied = copy_and_rename_file(
             src_path=original_photo,
-            dest_folder=Path(output_folder) / str(year),
+            dest_folder=Path(dest) / str(year),
             filename=new_filename,
             ext=f".{ext}",
         )
@@ -223,3 +237,28 @@ def main(
             photos_copied += 1
 
     logging.info(f"Finished copying {photos_copied} photos.")
+
+
+def count_duplicates(
+    src: Annotated[
+        str, typer.Argument(help="The folder containing the original photos.")
+    ],
+) -> None:
+    """count the number of duplicate photos in a folder.
+
+    Args:
+        src (Annotated[ str, typer.Argument ]): The folder containing the
+            original photos.
+    """
+    photo_paths = find_photos(src)
+
+    if photo_paths == []:
+        raise Exception("No valid photos found in the input folder.")
+
+    logging.info(f"Found {len(photo_paths)} photos.")
+
+    photos_metadata, duplicate_count = hash_extract_metadata(photo_paths)
+    if duplicate_count > 0:
+        logging.warning(f"Found {duplicate_count} duplicate photos. ")
+    else:
+        logging.info("No duplicates found.")
