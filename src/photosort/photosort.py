@@ -216,7 +216,7 @@ def main(
                 datetime_string, "%Y:%m:%d %H:%M:%S"
             )
             year = date_object.year
-            new_filename = date_object.strftime("%Y-%m-%d")
+            new_filename = date_object.strftime("%Y-%m-%d_%H-%M-%S")
         except ValueError:
             logging.warning(
                 f"Invalid DateTime format for file: {original_photo}, "
@@ -228,7 +228,7 @@ def main(
             src_path=original_photo,
             dest_folder=Path(dest) / str(year),
             filename=new_filename,
-            ext=f".{ext}",
+            ext=f"{ext}",
         )
 
         if copied:
