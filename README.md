@@ -1,15 +1,22 @@
 # photosort
 
-`photosort` is a simple tool to sort and organize your photos into directories
-based on their metadata.
+`photosort` is a simple tool to inspect, rename and organise your photos by
+their metadata. It now supports three main behaviours: safe counting (no changes),
+continuous incremental fixing and renaming-only workflows.
 
 ## Features
 
-- Sort photos by date taken
-- Organise photos into year directories
-- Rename photos to year-month-day_counter
-- Avoid having duplicate images
-- Supports various image formats
+- Count mode (safe): scan a folder, compute hashes to find real duplicates,
+    check extensions and report — does not create folders or move files
+- Fix mode (default): incremental/continual run that processes only new
+    files and leaves already-sorted folders alone (very fast for large photo
+    collections)
+- Force re-sort: re-check everything and re-process files when you need a
+    full re-run (e.g. improved detection rules)
+- Rename-only: update filenames to a consistent format while keeping files
+    in their current folders (no moving)
+- Avoids true duplicates using content hashes
+- Supports various image formats (jpeg, heic/heif, png, etc.)
 
 ## Installation
 
@@ -22,65 +29,61 @@ pip install .
 
 ## Example
 
-Imagine the below tree structure, some files that shouldn't be there
-(README.md), some duplicates, and different file formats.
-
-```bash
-└── test-photos
-    ├── Canon_40D copy.jpg
-    ├── Canon_40D.jpg
-    ├── HMD_Nokia_8.3_5G.heif
-    ├── Kodak_CX7530.jpg
-    └── README.md
-```
-
-Running a single `photosort` command (see usage) will return these messages.
-
-```bash
-[17:38:30] INFO     Found 4 photos.
-           INFO     Duplicate file found: data/test-photos/other/Canon_40D copy.jpg and data/test-photos/Canon_40D.jpg (hash:406958840ad1665ffcd1be9c29d515b9)
-           WARNING  Found 1 duplicate photos. Duplicates will be ignored.
-           INFO     Finished copying 3 photos.
-```
-
-`photosort` will reoganise these photos, ignoring duplicates and rename to the
-below:
-
-```bash
-├── fixed
-│   ├── 2008
-│   │   ├── 2008-07-31_000..jpg
-│   │   └── 2008-07-31_001..jpg
-│   └── 2022
-│       └── 2022-02-03_000..heif
-└── test-photos
-    ├── Canon_40D copy.jpg
-    ├── Canon_40D.jpg
-    ├── HMD_Nokia_8.3_5G.heif
-    ├── Kodak_CX7530.jpg
-    └── README.md
-```
+TODO
 
 ## Usage
 
-To sort your photos, use the following command:
+`photosort` now exposes three primary commands / behaviors: count (safe), fix
+(default/continual), and rename (filenames only). Use the `uv run` helper as
+shown below or call the CLI directly with `photosort` depending on your
+environment.
+
+1) Just Count (Safe Mode)
+
+This scans the folder, computes content hashes to find real duplicates,
+verifies file-extensions and prints a report. It does not create folders or
+copy/move files — it is read-only.
 
 ```bash
-photosort run <src> <dest>
+uv run photosort count --source ./test
 ```
 
-Replace `<src>` with the path to your unsorted photos and
-`<dest>` with the path where you want the sorted photos to be
-saved.
+2) The Continual Run (Fix — Default Behavior)
 
-To see how it works, try it out with the test images in this repository
+This is the normal workflow for keeping a large photo collection current.
+When `--dest` is the same as `--source` (for example, your main drive),
+`photosort` will skip already-sorted folders (fast) and only process new
+incoming files. Example:
 
 ```bash
-photosort run ./data/test-photos ./data/fixed
+uv run photosort fix --source ./my_photos --dest ./my_photos
 ```
 
-There is also an option to count the number of duplicates:
+Scenario: You have 10,000 photos already sorted in `./my_photos/2023 Spain` and
+you add a small batch of 50 new photos into `./my_photos/New_Import`.
+Result: `photosort` detects that `2023 Spain` is already a sorted folder and
+skips it, then finds and sorts only the 50 new photos — very fast.
+
+3) Force Resort
+
+If you want to re-process everything (for example after improving detection
+rules), use `--force`. This will re-check and re-sort all items.
 
 ```bash
-photosort count <src>
+uv run photosort fix --source ./my_photos --dest ./my_photos --force
+```
+
+4) Rename-only
+
+If you'd like to keep files where they are but tidy up their filenames
+(for example `DSC001.jpg` -> `2025-01-01_DSC001.jpg`), use `rename`.
+
+```bash
+uv run photosort rename --source ./my_photos
+```
+
+5) Help
+
+```bash
+uv run photosort --help
 ```
